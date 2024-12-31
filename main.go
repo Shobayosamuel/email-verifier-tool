@@ -7,18 +7,19 @@ import (
 	"net"
 	"os"
 	"strings"
+	"encoding/json"
 )
 
 func main() {
 	scanner := bufio.NewScanner(os.Stdin)
-	fmt.Printf("domain, hasMx, hasSPF, sprRecord, hasDMARC, dmarcRecord\n")
+	fmt.Printf("ENter the domain\n")
 
 	for scanner.Scan() {
 		checkDomain(scanner.Text())
 	}
 
 	if err := scanner.Err(); err != nil {
-		log.Fatal("Error: could not read from input: %v\n",err)
+		log.Fatalf("Error: could not read from input: %v\n", err)
 	}
 
 }
@@ -60,5 +61,20 @@ func checkDomain(domain string) {
 			}
 		}
 	}
-	fmt.Printf("%s, %t, %t, %s, %t, %s\n", domain, hasMx, hasSPF, spfRecord, hasDMARC, dmarcRecord)
+	result := map[string]interface{}{
+		"domain":      domain,
+		"hasMx":       hasMx,
+		"hasSPF":      hasSPF,
+		"spfRecord":   spfRecord,
+		"hasDMARC":    hasDMARC,
+		"dmarcRecord": dmarcRecord,
+	}
+
+	jsonResult, err := json.Marshal(result)
+	if err != nil {
+		log.Printf("Error: could not marshal result to JSON for domain %s: %v\n", domain, err)
+		return
+	}
+
+	fmt.Println(string(jsonResult))
 }
